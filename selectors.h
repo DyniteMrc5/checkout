@@ -57,6 +57,15 @@ protected:
 	std::set<Item>& iSelectionSet;
 };
 
+class GreedyAnyInSetSelector : public ManyItemSelector
+{
+public:
+	GreedyAnyInSetSelector(std::set<Item>& aSelection) :
+		ManyItemSelector(aSelection)
+	{};
+
+	virtual std::vector<Item> select(std::vector<Item>& aItems);
+};
 
 /*
 * Matches if an Item is in the set
