@@ -12,7 +12,6 @@ A shopping checkout implementation in c++
 
 This will run the test harness which runs a number of tests, some of which output a (fixed width) receipt such as the below.
 
-    [ RUN      ] Basics.TestSmartDeals_TescoMealDeal_ExtraItems
           RECEIPT
     --------------------
     Sandwich1      (175)
@@ -26,7 +25,6 @@ This will run the test harness which runs a number of tests, some of which outpu
     --------------------
     Total:           885
 
-    [       OK ] Basics.TestSmartDeals_TescoMealDeal_ExtraItems (0 ms)
 
 ## Architecture
 
@@ -58,9 +56,10 @@ However, the following don't fit this model:
   - buy 3 (in a set of items) and the cheapest is free
   - buy 1 (in a set of items) AND buy 1 (in a set of items) AND (buy 1 in a set of items) -> For a fixed price. ("Tesco meal deal")
 
-In order to model the 'Meal Deal' concept, it is necessary to be able to have more expressive power and be able to combine 'sub-deals'.
+In order to model the 'Meal Deal' concept, it is necessary to be able to have more expressive power and be able to combine 'sub-deals'. 
+Expressive Deals are called `SmartDeal`.
 
-This is done with `Selector`s.
+This is achieved with `Selector`s.
 
 A simple deal (BOGOF) is defined as a single `DealSelector` which is a tuple containing 
 `SelectionSelectors`, `TargetSelectors` and a unit price (int).
@@ -130,8 +129,16 @@ For example, is it better to buy these items in the Buy 2 Get 1 Free deal, or in
 To achieve this we have to run through all the permutations of deals and use the Deal permutation that results in the best price.
 
 
-## Adding new Deals
+### Adding new Deals
 
 So long as the deal can be modeled using a multiple of DealSelector, it can be modelled using the current system.
 It is proposed to be able to seralise and deserial deals.
 This could in future be done with a UI to allow non-tech savvy to easily craft a new deal, which could then be loaded over a network connection.
+
+
+### Legacy Deals
+
+There are a number of Deals in model_deal.cpp, which do not use the above data structures (SmartDeals). 
+
+They use the same selector and target concept, but do so internally without any `Selector` objects. 
+They're not as flexible in this sense, but may be simpler and easier to set up.
