@@ -75,22 +75,15 @@ std::vector<Item> SingleInSetSelector::select(std::vector<Item>& aItems)
 	return selected;
 }
 
-std::vector<Item> DealSelector::select(std::vector<Item>& aItems)
-{
-	return std::vector<Item>();
-}
-
 std::vector<Item> GreedyAnyInSetSelector::select(std::vector<Item>& aItems)
 {
 	std::vector<Item> result{};
 
-	int count = 0;
 	for (Item& i : aItems)
 	{
 		if (iSelectionSet.count(i))
 		{
 			result.push_back(i);
-			count++;
 		}
 	}
 	return result;

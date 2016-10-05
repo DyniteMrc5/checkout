@@ -5,12 +5,18 @@
 #include <tuple>
 #include <limits>
 
+/*
+ * Given our original input and our checkout output
+ * Calculate the total bill price.
+ */
 int calculateTotalPrice(std::vector<Item>& aInput, std::vector<std::pair<Item, int>>& aDealItems)
 {
 	int total = 0;
 
+	// For each item
 	for (Item& item : aInput)
 	{
+		// Check whether to add a deal price for item
 		bool addedInDeal = false;
 		for (std::pair<Item, int>& pair : aDealItems)
 		{
@@ -22,6 +28,7 @@ int calculateTotalPrice(std::vector<Item>& aInput, std::vector<std::pair<Item, i
 			}
 		}
 
+		// Add original price
 		if (!addedInDeal)
 		{
 			total += item.iUnitPrice;
@@ -30,29 +37,33 @@ int calculateTotalPrice(std::vector<Item>& aInput, std::vector<std::pair<Item, i
 	return total;
 }
 
-
-std::vector<std::vector<const Deal*>> permuations(std::vector<const Deal*> aDeals)
+/*
+ * Create all permutations of Deals.
+ * This is because the order we evaluate Deals is significant.
+ */
+template <typename T>
+std::vector<std::vector<const T*>> permuations(std::vector<const T*> aDeals)
 {
-	std::vector<std::vector<const Deal*>> result;
+	std::vector<std::vector<const T*>> result;
 
 	if (aDeals.size() == 0)
 	{
 		// return [[]]
-		result.push_back(std::vector<const Deal*>{ });
+		result.push_back(std::vector<const T*>{ });
 		return result;
 	}
 
 	if (aDeals.size() == 1)
 	{
 		// return [[deal1]]
-		result.push_back(std::vector<const Deal*>{aDeals[0]});
+		result.push_back(std::vector<const T*>{aDeals[0]});
 		return result;
 	}
 
-	const Deal* d = aDeals[0];
-	std::vector<const Deal*> sublist(aDeals.begin() + 1, aDeals.end());
+	const T* d = aDeals[0];
+	std::vector<const T*> sublist(aDeals.begin() + 1, aDeals.end());
 
-	std::vector<std::vector<const Deal*>> perms = permuations(sublist);
+	std::vector<std::vector<const T*>> perms = permuations(sublist);
 
 	int numPerms = perms.size();
 	for (int p = 0; p < numPerms; ++p)
@@ -61,7 +72,7 @@ std::vector<std::vector<const Deal*>> permuations(std::vector<const Deal*> aDeal
 		// insert d at every index;
 		for (int i = 0; i <= permutation.size(); ++i)
 		{
-			std::vector<const Deal*> permutation_copy = permutation;
+			std::vector<const T*> permutation_copy = permutation;
 			permutation_copy.insert(permutation_copy.begin() + i, d);
 			result.push_back(permutation_copy);
 		}
@@ -70,13 +81,23 @@ std::vector<std::vector<const Deal*>> permuations(std::vector<const Deal*> aDeal
 
 }
 
+/*
+* Create all permutations of Deals.
+* This is because the order we evaluate Deals is significant.
+* Empty list is added for the case where we have no Deals.
+*/
 std::vector<std::vector<const Deal*>> Checkout::dealCombinations(std::vector<const Deal*> aDeals)
 {
-	auto perms = permuations(aDeals);
+	auto perms = ::permuations<Deal>(aDeals);
 	perms.push_back({}); //add empty list - default case
 	return perms;
 }
 
+/* 
+ * We will probably have < 300 items, but may have many thousands of deals, so
+ * use this function to filter out the deals that are not valid.
+ * Will hopefully be a set lookup, or object comparison, which should be performant.
+ */
 std::vector<const Deal*> Checkout::filterDeals(std::vector<const Deal*> aDeals, std::vector<Item>& aItems)
 {
 	std::vector<const Deal*> result;
@@ -109,7 +130,7 @@ std::string Checkout::createReceipt(std::vector<std::tuple<const Deal*, Item, in
 
 	receipt += std::string(RECEIPT_WIDTH, '-') + '\n';
 
-
+	// For every item (which may/may not have an associated Deal)...
 	for (std::tuple<const Deal*, Item, int>& tuple : aInput)
 	{
 		const Deal* deal = std::get<0>(tuple);
@@ -120,6 +141,9 @@ std::string Checkout::createReceipt(std::vector<std::tuple<const Deal*, Item, in
 		std::string idStr = std::get<1>(tuple).name();
 		std::string originalPriceStr = std::to_string(original_price); 
 
+		// If we have a deal fo this item, we
+		// put the original price in brackets,
+		// and the deal price will be on the next line
 		if (original_price != price)
 		{
 			originalPriceStr = "(" + originalPriceStr + ")";
@@ -127,11 +151,12 @@ std::string Checkout::createReceipt(std::vector<std::tuple<const Deal*, Item, in
 
 		std::string priceStr = std::to_string(price);
 
+		// Print ITEM
 		std::string line(RECEIPT_WIDTH, ' ');
 		line.replace(line.begin(), line.begin() + idStr.length(), idStr);
 
+		// Print PRICE
 		std::string receipt_price = (deal) ? originalPriceStr : priceStr;
-
 		line.replace(line.begin() + RECEIPT_WIDTH - receipt_price.length(), line.end(), receipt_price);
 		line += '\n';
     	receipt += line;
@@ -142,7 +167,8 @@ std::string Checkout::createReceipt(std::vector<std::tuple<const Deal*, Item, in
 			std::string line(RECEIPT_WIDTH, ' ');
 			std::string name = deal->name();
 
-			int nameLen = std::min((int)name.length(), RECEIPT_WIDTH); //don't print too name if it doesn't fit
+			//don't print all of name if it doesn't fit
+			int nameLen = std::min((int)name.length(), RECEIPT_WIDTH); 
 			auto endOfDealNameIter = line.begin() + nameLen;
 
 			line.replace(line.begin(), endOfDealNameIter, name);
@@ -178,38 +204,45 @@ std::string Checkout::createReceipt(std::vector<std::tuple<const Deal*, Item, in
 	return receipt;
 }
 
+/*
+ Check out list of Items
 
+ Approach:
+  We have a number of deals.
+  We need to find the optimal receipt (for the customer)
+  This means that we need to find the best deal covering the input range.
+  The problem is that a deals may overlap, meaning that all combinations ("permutations") of deals need to be evaluated
+  
+ Method: 
+   Get all permutation of deals.
+   For each permutation:
+     Evaluate each deal in turn, providing the remaining input. 
+     For each evaluation, remove the affected input from the list
+     Continue to evaluate a deal until no more results are returned. Then proceed to next deal.
+     Save the permutation if its the best
+
+  Returns the checkout receipt
+ */
 std::string Checkout::checkoutItems(std::vector<Item>& aInput, std::vector<const Deal*>& aDeals, int& aTotal)
 {
 
-	// Approach:
-	//	We have a number of deals.
-	//	We need to find the optimal receipt (for the customer)
-	//  This means that we need to find the best deal covering the input range.
-	//  The problem is that a deals may overlap, meaning that all combinations ("permutations") of deals need to be evaluated
-	//  
-	// Method: 
-	//   Get all permutation of deals.
-	//   For each permutation:
-	//	   Evaluate the each deal in turn, providing the input. 
-	//     For each evaluation, remove the affected input from the list
-	//	   Continue to evaluate a deal until no more results are returned. Then proceed to next deal.
-	//	   Save the total for that run in a hashmap (index in to dealPermutations)
-
-
-	// (performance optimisation) Remove deals which do not affect aInput - likely to only be a few relevant deals for our Items
+	// (performance optimisation) Remove deals which do not affect aInput
+	// - likely to only be a few relevant deals for our Items
 	aDeals = filterDeals(aDeals, aInput);
 
 	std::map<int, int> bestDeal;
 	int lowest_total = std::numeric_limits<int>::max();
 	std::vector<std::tuple<const Deal*, Item, int>> best_result{};
 
+	// Get deal permutations
 	std::vector<std::vector<const Deal*>> dealPermutations = Checkout::dealCombinations(aDeals);
+
+	//Iterate permutations
 	for (int i = 0; i < dealPermutations.size(); ++i)
 	{
 		std::vector<const Deal*>& dealPermutation = dealPermutations[i];
 		
-		//copy input
+		//copy input (we need to modify it if we get a match - items are not applicable to multiple deals)
 		std::vector<Item> input = aInput;
 
 		std::vector<std::tuple<const Deal*, Item, int>> current_result{};
@@ -233,7 +266,7 @@ std::string Checkout::checkoutItems(std::vector<Item>& aInput, std::vector<const
 				continue;
 			}
 
-			// Deal matched some items
+			// Deal matched some items...
 
 			// Remove items from input (deals cannot be used in conjunction)
 			std::vector<std::pair<Item, int>>::const_iterator it = result.begin();
@@ -277,9 +310,9 @@ std::string Checkout::checkoutItems(std::vector<Item>& aInput, std::vector<const
 			best_result = current_result;
 		}
 	}
-
-	//std::cout << "Lowest Total:" << lowest_total << std::endl;
 	
 	aTotal = lowest_total;
+
+	// Generate receipt
 	return createReceipt(best_result, lowest_total);
 }

@@ -5,15 +5,15 @@
 #include <iostream>
 #include <set>
 
-
 #ifdef _MSC_VER
 	// If editing in Visual Studio, define these
-	// macros to allow compilation and manual inspection.
+	// macros to help compilation and manual inspection.
 	#define TEST(testclass, Title) void Title()
 	#define ASSERT_EQ(X,Y)
 	#define ASSERT_NE(X,Y)
 #endif
 
+// Print deal permutations
 void print(std::vector<std::vector<const Deal*>> aInput)
 {
 	for (auto list : aInput)
@@ -439,13 +439,87 @@ TEST(Basics, TestSmartDeals_TescoMealDeal_ExtraItems)
 	ASSERT_EQ(total, 885);
 }
 
+void TestSmartDeals_TescoMealDeal_ExtraItems(bool optionalSelector, bool optionalPizza)
+{
+	Item sandwich1{ 1, 175, "Sandwich1" };
+	Item sandwich2{ 2, 145, "Sandwich2" };
+	Item sandwich3{ 3, 155, "Sandwich3" };
+
+	std::set<Item> sandwiches{ sandwich1, sandwich2, sandwich3 };
+
+	Item drink1{ 4, 80, "Drink1" };
+	Item drink2{ 5, 85, "Drink2" };
+	Item drink3{ 6, 86, "Drink3" };
+
+	std::set<Item> drinks{ drink1, drink2, drink3 };
+
+	Item crisps1{ 7, 110, "Crisps1" };
+	Item crisps2{ 8, 101, "Crisps2" };
+	Item crisps3{ 9, 105, "Crisps3" };
+
+	Item pizza{ 10, 500, "Pizza " };
+
+	std::set<Item> crisps{ crisps1, crisps2, crisps3 };
+
+	SingleInSetSelector sandwichesSelector{ sandwiches };
+	SingleInSetSelector crispsSelector{ crisps };
+	SingleInSetSelector drinkSelector{ drinks };
+
+	SingleItemSelector pizzaSelector{ pizza };
+
+	DealSelectorSelectTargetPrice sandwichSTP{ std::make_tuple(&sandwichesSelector, &sandwichesSelector, 100) };
+	DealSelectorSelectTargetPrice cripsSTP{ std::make_tuple(&crispsSelector, &crispsSelector, 100) };
+	DealSelectorSelectTargetPrice drinkSTP{ std::make_tuple(&drinkSelector, &drinkSelector, 100) };
+	DealSelectorSelectTargetPrice pizzaSTP{ std::make_tuple(&pizzaSelector, &pizzaSelector, 350) };
+
+	StrictDealSelector sandwichDealSelector(sandwichSTP);
+	StrictDealSelector cripsDealSelector(cripsSTP);
+	StrictDealSelector drinkDealSelector(drinkSTP);
+	OptionalDealSelector pizzaDealSelector(pizzaSTP);
+
+	std::vector<DealSelector*> selectors{ &sandwichDealSelector, &cripsDealSelector, &drinkDealSelector};
+
+	if (optionalSelector)
+	{
+		selectors.push_back(&pizzaDealSelector);
+	}
+
+	MultiDealSelector ds(selectors);
+	SmartDeal deal1(ds);
+	deal1.name() = "Tesco Meal Deal";
+
+	std::vector<const Deal*> deals{ &deal1 };
+
+	std::vector<Item> items{ sandwich1, drink2, crisps3, drink1 };
+
+	int expected = 385;
+
+	if (optionalPizza)
+	{
+		items.push_back(pizza);
+		
+		if (optionalSelector)
+		{
+			expected += 350;
+		}
+		else {
+			expected += 500;
+		}
+	} 
+
+	int total;
+	std::string receipt = Checkout::checkoutItems(items, deals, total);
+	std::cout << receipt << std::endl;
+	ASSERT_EQ(total, expected);
+}
+
 //For each N (equal) items of X you get K items of Y for Z
 TEST(Basics, TestSmartDeals_ForNofX_GetKofYforZ)
 {
 	//StrictDealSelector[0] = <CountedSpecificItemSelector(N)[A], CountedSpecificItemSelector(K)[Y], UnitPrice[Z]>
 	Item item1{ 1, 99, "Sweets" };
 	Item item2{ 1, 100, "Cake" };
-	CountedSpecificItemSelector sweetsSelector{ item1, 3}; // 3 lots of sweets
+	CountedSpecificItemSelector sweetsSelector{ item1, 3 }; // 3 lots of sweets
 	CountedSpecificItemSelector cakeSelector{ item2, 1 }; // 1 lots of cake
 
 	DealSelectorSelectTargetPrice dsSTP{ std::make_tuple(&sweetsSelector, &cakeSelector, 50) };
@@ -453,7 +527,7 @@ TEST(Basics, TestSmartDeals_ForNofX_GetKofYforZ)
 	std::vector<DealSelector*> selectors{ &deal };
 	MultiDealSelector ds(selectors);
 	SmartDeal deal1(ds);
-	deal1.name() = "ForNofX_GetKofYforZ";
+	deal1.name() = "DealSweets&Cakes";
 
 	std::vector<const Deal*> deals{ &deal1 };
 
@@ -465,11 +539,24 @@ TEST(Basics, TestSmartDeals_ForNofX_GetKofYforZ)
 
 }
 
-#ifdef _MSC_VER
-int main(int argc, char** argv)
+TEST(Basics, TestSmartDeals_TescoMealDeal_ExtraItems_StrictOnly)
 {
-	TestWithoutNoValidDeal();
-	Receipt();
-	return 0;
+	TestSmartDeals_TescoMealDeal_ExtraItems(false, false);
 }
-#endif
+
+TEST(Basics, TestSmartDeals_TescoMealDeal_ExtraItems_StrictOnly_WithPizza)
+{
+	TestSmartDeals_TescoMealDeal_ExtraItems(false, true);
+}
+
+TEST(Basics, TestSmartDeals_TescoMealDeal_ExtraItems_WithOptionalPizzaDeal_WithoutPizza)
+{
+	TestSmartDeals_TescoMealDeal_ExtraItems(true, false);
+}
+
+TEST(Basics, TestSmartDeals_TescoMealDeal_ExtraItems_WithOptionalPizzaDeal_WitPizza)
+{
+	TestSmartDeals_TescoMealDeal_ExtraItems(true, true);
+}
+
+
