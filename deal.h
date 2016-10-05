@@ -29,6 +29,31 @@ public:
 	std::string iName{ "Default Deal" };
 };
 
+class MultiDealSelector;
+
+/*
+ * A SmartDeal is a Deal which is able to use 
+ * any number of 'sub-deals' (DealSelectors)
+ */
+class SmartDeal : public Deal
+{
+public:
+	SmartDeal(MultiDealSelector& aSelectors)
+		: Deal("SmartDeal Default"), iSelectors(aSelectors)
+	{};
+
+	virtual std::vector<std::pair<Item, int>> evaluate(std::vector<Item>& aInput) const;
+	virtual bool selectsOn(const Item& aItem) const;
+	virtual bool targets(const Item& aItem) const;
+	virtual std::string serialise();
+	static SmartDeal* deserialise(std::string aData);
+
+private:
+	MultiDealSelector& iSelectors;
+};
+
+// ---- Model Deals ------------------
+
 enum DealType
 {
 	EBuyInSetOfXCheapestFree = 0,
@@ -96,26 +121,4 @@ private:
 	int iTargetUnitPrice;	//Z
 };
 
-
-
-// predeclare 
-class MultiDealSelector;
-
-
-class SmartDeal : public Deal
-{
-public:
-	SmartDeal(MultiDealSelector& aSelectors) 
-		: Deal("SmartDeal Default"), iSelectors(aSelectors) 
-	{};
-
-	virtual std::vector<std::pair<Item, int>> evaluate(std::vector<Item>& aInput) const;
-	virtual bool selectsOn(const Item& aItem) const;
-	virtual bool targets(const Item& aItem) const;
-	virtual std::string serialise();
-	static SmartDeal* deserialise(std::string aData);
-
-private:
-	MultiDealSelector& iSelectors;
-};
 
