@@ -177,3 +177,11 @@ They're not as flexible in this sense, but may be simpler and easier to set up.
       StrictDealSelector[1] =   <SingleInSetSelector[X or Y],	 SingleInSetSelector[X,  Y],	  UnitPrice[100]>   // crisps
       StrictDealSelector[2] =   <SingleInSetSelector[Q or W],	 SingleInSetSelector[Q, W],	      UnitPrice[100]>   // drink
       OptionalDealSelector[3] = <SingleInSetSelector[M or N],	 SingleInSetSelector[M or N],	  UnitPrice[100]>   // optional desert
+
+## Future
+
+It would be great to create a parser which would convert simple defintions to SmartDeals.
+This could be for example like any of the following grammers:
+    "Buy 1 id Get 1, id, 50"
+	"select * from Items LEFT JOIN Deals ON Deals.id == Items.id "
+	
