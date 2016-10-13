@@ -15,6 +15,7 @@ class Deal
 {
 public:
 	Deal(std::string aName) : iName(aName) {};
+	virtual ~Deal() {};
 
 	virtual std::string name() const;
 	std::string& name();
@@ -23,7 +24,7 @@ public:
 	virtual bool selectsOn(const Item& aItem) const = 0;
 	virtual bool targets(const Item& aItem) const = 0;
 	virtual std::string serialise() = 0;
-	
+
 	static std::shared_ptr<Deal> deserialise(std::string aData);
 
 	std::string iName{ "Default Deal" };
@@ -41,6 +42,7 @@ public:
 	SmartDeal(MultiDealSelector& aSelectors)
 		: Deal("SmartDeal Default"), iSelectors(aSelectors)
 	{};
+	virtual ~SmartDeal() = default;
 
 	virtual std::vector<std::pair<Item, int>> evaluate(std::vector<Item>& aInput) const;
 	virtual bool selectsOn(const Item& aItem) const;
@@ -72,7 +74,7 @@ public:
 
 	virtual bool selectsOn(const Item& aItem) const;
 	virtual bool targets(const Item& aItem) const;
-	
+
 	virtual std::string serialise();
 	static BuyInSetOfXCheapestFree* deserialise(std::string aData);
 
