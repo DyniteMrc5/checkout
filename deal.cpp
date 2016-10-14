@@ -112,7 +112,8 @@ std::vector<std::pair<Item, int>> SmartDeal::evaluate(std::vector<Item>& aInput)
 		}
 
 		// find target item(s)
-		std::vector<Item> targets = std::get<1>(selectorPair)->select(input);
+		TargetSelector* targetSelector = std::get<1>(selectorPair);
+		std::vector<Item> targets = targetSelector->select(input);
 
 		int numTargets = targets.size();
 
@@ -127,26 +128,32 @@ std::vector<std::pair<Item, int>> SmartDeal::evaluate(std::vector<Item>& aInput)
 			}
 		}
 
-		std::set<Item> targetted{};
+		// If we have any selected which are also in targets, remove from selected.
+		// ((Item)selected[..]).iId == ((Item)targets[..]).iId
+		for (Item& item : targets)
+		{
+			auto findItemInSelected = std::find(selected.begin(), selected.end(), item);
+			if (findItemInSelected != selected.end())
+			{
+				selected.erase(findItemInSelected);
+			}
+		}
 
+		// Add all targets to result
 		for (Item& item : targets)
 		{
 			int unitPrice = std::get<2>(selectorPair);
 			result.push_back(std::make_pair(item, unitPrice));
 			//remove targets from input items (deals cannot be used in conjunction)
 			input.erase(std::find(input.begin(), input.end(), item));
-			targetted.insert(item);
 		}
+		// Add all selected to result
 		for (Item& item : selected)
 		{
 			int unitPrice = std::get<2>(selectorPair);
 
-			// If select and target is different, include both/all in output
-			// (If they're the same item e.g B1G1Free, don't double include)
-			if (targetted.count(item) == 0)
-			{
-				result.push_back(std::make_pair(item, item.iUnitPrice));
-			}
+			result.push_back(std::make_pair(item, item.iUnitPrice));
+
 			//remove selected items from input items (deals cannot be used in conjunction)
 			auto find = std::find(input.begin(), input.end(), item);
 			if (find != input.end())

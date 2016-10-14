@@ -329,6 +329,30 @@ TEST(Basics, TestSmartDeals_SingleItem)
 }
 
 //For each N (equal) items of X you get K items of Y for Z
+TEST(Basics, TestSmartDeals_InterviewCase)
+{
+	Item item1{ 1, 100, "Sweets" };
+	CountedSpecificItemSelector selectionSelector{ item1, 3 }; // 3 lots of sweets
+	CountedSpecificItemSelector targetSelector{ item1, 1 }; // 1 lots of sweets
+
+	DealSelectorSelectTargetPrice dsSTP{ std::make_tuple(&selectionSelector, &targetSelector, 50) };
+	StrictDealSelector deal(dsSTP);
+	std::vector<DealSelector*> selectors{ &deal };
+	MultiDealSelector ds(selectors);
+	SmartDeal deal1(ds);
+	deal1.name() = "Interview Case - Smart";
+
+	std::vector<const Deal*> deals{ &deal1 };
+
+	std::vector<Item> items{ 7, item1 };
+	int total;
+	std::string receipt = Checkout::checkoutItems(items, deals, total);
+	std::cout << receipt << std::endl;
+	ASSERT_EQ(total, 600);
+
+}
+
+//For each N (equal) items of X you get K items of Y for Z
 TEST(Basics, TestSmartDeals_ForNofX_GetKofYforZ)
 {
 	//StrictDealSelector[0] = <CountedSpecificItemSelector(N)[A], CountedSpecificItemSelector(K)[Y], UnitPrice[Z]>

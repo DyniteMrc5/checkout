@@ -35,6 +35,11 @@ std::vector<Item> CountedSpecificItemSelector::select(std::vector<Item>& aItems)
 		}
 	}
 
+	if (count < iSelectionCount)
+	{
+		return std::vector<Item> {};
+	}
+
 	return result;
 }
 
@@ -57,6 +62,12 @@ std::vector<Item> CountedAnyInSetSelector::select(std::vector<Item>& aItems)
 			count++;
 		}
 	}
+
+	if (count < iSelectionCount)
+	{
+		return std::vector<Item> {};
+	}
+
 	return result;
 }
 
