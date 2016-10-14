@@ -89,10 +89,10 @@ private:
 // Buy A=|X| items, get B=|Y| for Z unit price (of Y). e.g.For each #A (equal) items of X, get #K of Y items for Z unit price
 // Buy A=|X| items, get B=|X| for Z unit price (of X). e.g Buy 1/2/2 get 1/2 free
 // Buy A=|X| items, get A=|X| for Z unit price (of X). e.g Buy 2, Pay 2/0.75.
-class BuyAofXGetBofYFZ : public Deal
+class BuyAofXGetBofYForZ : public Deal
 {
 public:
-	BuyAofXGetBofYFZ(int aSelectionCount, int aSelectionId, int aTargetCount, int aTargetId, int aTargetUnitPrice) :
+	BuyAofXGetBofYForZ(int aSelectionCount, int aSelectionId, int aTargetCount, int aTargetId, int aTargetUnitPrice) :
 		Deal("BuyAofXGetBofYFZ"), iSelectionCount(aSelectionCount), iSelectionId(aSelectionId), iTargetCount(aTargetCount), iTargetId(aTargetId), iTargetUnitPrice(aTargetUnitPrice) 
 	{
 	};
@@ -103,10 +103,9 @@ public:
 	virtual bool targets(const Item& aItem) const;
 
 	virtual std::vector<std::pair<Item, int>> evaluate(std::vector<Item>& aInput) const;
-	//friend bool operator <(const BuyAofXGetBofYFZ& lhs, const BuyAofXGetBofYFZ& rhs) { return &lhs < &rhs; };
 
 	virtual std::string serialise();
-	static BuyAofXGetBofYFZ* deserialise(std::string aData);
+	static BuyAofXGetBofYForZ* deserialise(std::string aData);
 
 	inline int selectionCount() { return iSelectionCount; }
 	inline int selectionId() { return iSelectionId; }

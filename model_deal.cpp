@@ -13,7 +13,7 @@
  * They handle it in their own way (though using the same principle or selectors and targets).
  * There are two types:
  * BuyInSetOfXCheapestFree and
- * BuyAofXGetBofYFZ
+ * BuyAofXGetBofYForZ
  */
 
 void split(const std::string &s, char delim, std::vector<std::string> &elems) {
@@ -88,14 +88,14 @@ bool BuyInSetOfXCheapestFree::targets(const Item & aItem) const
 	return false;
 }
 
-std::string BuyAofXGetBofYFZ::name() const
+std::string BuyAofXGetBofYForZ::name() const
 {
 	return "Buy" + std::to_string(iSelectionCount) + "Of" + std::to_string(iSelectionId) +
 		"Get" + std::to_string(iTargetCount) + "Of" + std::to_string(iTargetId) +
 		"For" + std::to_string(iTargetUnitPrice) + "UnitPrice";
 }
 
-bool BuyAofXGetBofYFZ::selectsOn(const Item & aItem) const
+bool BuyAofXGetBofYForZ::selectsOn(const Item & aItem) const
 {
 	if (iSelectionId == aItem.iId)
 		return true;
@@ -103,7 +103,7 @@ bool BuyAofXGetBofYFZ::selectsOn(const Item & aItem) const
 	return false;
 }
 
-bool BuyAofXGetBofYFZ::targets(const Item & aItem) const
+bool BuyAofXGetBofYForZ::targets(const Item & aItem) const
 {
 	if (iTargetId == aItem.iId)
 		return true;
@@ -111,7 +111,7 @@ bool BuyAofXGetBofYFZ::targets(const Item & aItem) const
 	return false;
 }
 
-std::vector<std::pair<Item, int>> BuyAofXGetBofYFZ::evaluate(std::vector<Item>& aInput) const
+std::vector<std::pair<Item, int>> BuyAofXGetBofYForZ::evaluate(std::vector<Item>& aInput) const
 {
 	auto result = std::vector<std::pair<Item, int>>();
 
@@ -169,7 +169,7 @@ std::vector<std::pair<Item, int>> BuyAofXGetBofYFZ::evaluate(std::vector<Item>& 
 	return result;
 }
 
-std::string BuyAofXGetBofYFZ::serialise()
+std::string BuyAofXGetBofYForZ::serialise()
 {
 	std::string serial;
 	serial += std::to_string(((int)EBuyAofXGetBofYFZ)) + " "
@@ -183,7 +183,7 @@ std::string BuyAofXGetBofYFZ::serialise()
 
 
 
-BuyAofXGetBofYFZ* BuyAofXGetBofYFZ::deserialise(std::string aData)
+BuyAofXGetBofYForZ* BuyAofXGetBofYForZ::deserialise(std::string aData)
 {
 	std::vector<std::string> split = ::split(aData, ' ');
 	int data[5];
@@ -192,7 +192,7 @@ BuyAofXGetBofYFZ* BuyAofXGetBofYFZ::deserialise(std::string aData)
 		data[i - 1] = stoi(split[i]);
 	}
 
-	BuyAofXGetBofYFZ* deal = new BuyAofXGetBofYFZ{ data[0], data[1], data[2], data[3], data[4] };
+	BuyAofXGetBofYForZ* deal = new BuyAofXGetBofYForZ{ data[0], data[1], data[2], data[3], data[4] };
 	return deal;
 }
 

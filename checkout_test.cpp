@@ -69,9 +69,9 @@ TEST(Basics, Receipt)
 
 TEST(Basics, TestInterviewCase)
 {
-	BuyAofXGetBofYFZ deal1(3, 1, 1, 1, 50); // Buy 3 of item1, get 1 item1 for 50
+	BuyAofXGetBofYForZ deal1(3, 1, 1, 1, 50); // Buy 3 of item1, get 1 item1 for 50
 											//	should be (100 + 100 + (100 deal price as 50)) twice + 100
-											//  == 100+100+50 + 100+100+50 + 100 == 600
+											//  == (100+100+50) + (100+100+50) + 100 == 600
 	std::vector<const Deal*> deals{ &deal1 };
 
 	std::vector<Item> items{ 7, Item(1, 100, std::string("Item1")) };
@@ -85,7 +85,7 @@ TEST(Basics, TestInterviewCase)
 
 TEST(Basics, TestNoValidDeal)
 {
-	BuyAofXGetBofYFZ deal1(3, 0, 1, 1, 0); // Buy 3 of item0, get 1 item1 for 0 
+	BuyAofXGetBofYForZ deal1(3, 0, 1, 1, 0); // Buy 3 of item0, get 1 item1 for 0 
 	std::vector<const Deal*> deals{ &deal1 };
 
 	std::vector<Item> items{ Item(1, 100, std::string("Item1")) };
@@ -97,7 +97,7 @@ TEST(Basics, TestNoValidDeal)
 
 void SimpleTest(int countSelector, size_t countOfItem, int expected)
 {
-	BuyAofXGetBofYFZ deal1(countSelector, 1, 1, 1, 50); // Buy 1 of item1, get 1 item1 for 50 
+	BuyAofXGetBofYForZ deal1(countSelector, 1, 1, 1, 50); // Buy 1 of item1, get 1 item1 for 50 
 	std::vector<const Deal*> deals{ &deal1 };
 
 	Item item1(1, 100, "Item1");
@@ -125,8 +125,8 @@ TEST(Basics, TestWithSimpleDealTwoItemsSingleDealValid)
 
 void TestWithOverlappingItems(size_t numItems, int expected)
 {
-	BuyAofXGetBofYFZ deal1(2, 1, 1, 1, 25); // Buy 2 of item1, get 1 item1 for 25 
-	BuyAofXGetBofYFZ deal2(2, 1, 1, 1, 22); // Buy 2 of item1, get 1 item1 for 22 
+	BuyAofXGetBofYForZ deal1(2, 1, 1, 1, 25); // Buy 2 of item1, get 1 item1 for 25 
+	BuyAofXGetBofYForZ deal2(2, 1, 1, 1, 22); // Buy 2 of item1, get 1 item1 for 22 
 	std::vector<const Deal*> deals{ &deal1, &deal2 };
 
 	Item item1(1, 100, std::string("Item1"));
@@ -149,7 +149,7 @@ TEST(Basics, TestWithOverlapManySelectionItems)
 
 TEST(Basics, TestBadDeal)
 {
-	BuyAofXGetBofYFZ deal1(3, 1, 3, 1, 101); // Buy 3 of item1, get 3 item1 for 101 - this one should not be picked (101*3 > 100*3)
+	BuyAofXGetBofYForZ deal1(3, 1, 3, 1, 101); // Buy 3 of item1, get 3 item1 for 101 - this one should not be picked (101*3 > 100*3)
 	std::vector<const Deal*> deals{ &deal1 };
 
 	Item item1(1, 100, std::string("Item1"));
@@ -162,7 +162,7 @@ TEST(Basics, TestBadDeal)
 
 void TestCrossItemDeal(size_t numItem1s, size_t num2tem1s, int expected)
 {
-	BuyAofXGetBofYFZ deal1(3, 1, 1, 2, 22); // Buy 3 of item1, get 1 item2 for 22
+	BuyAofXGetBofYForZ deal1(3, 1, 1, 2, 22); // Buy 3 of item1, get 1 item2 for 22
 	std::vector<const Deal*> deals{ &deal1 };
 
 	Item item1(1, 100, "Item1");
@@ -198,8 +198,8 @@ TEST(Basics, TestCrossDeal_MultiManyValid)
 
 TEST(Basics, TestCrossDeal_MultiManyValid_Reordered)
 {
-	BuyAofXGetBofYFZ deal2(1, 2, 1, 2, 33); // Buy 1 of item2, get 1 item2 for 33
-	BuyAofXGetBofYFZ deal1(3, 1, 1, 2, 22); // Buy 3 of item1, get 1 item2 for 22
+	BuyAofXGetBofYForZ deal2(1, 2, 1, 2, 33); // Buy 1 of item2, get 1 item2 for 33
+	BuyAofXGetBofYForZ deal1(3, 1, 1, 2, 22); // Buy 3 of item1, get 1 item2 for 22
 	std::vector<const Deal*> deals{ &deal1, &deal2 };
 
 	Item item1(1, 100, std::string("Item1"));
@@ -284,7 +284,7 @@ TEST(Basics, TestSerialise_BuyInSetOfXCheapestFree)
 
 TEST(Basics, TestDeserialise_BuyAofXGetBofYFZ)
 {
-	BuyAofXGetBofYFZ deal1{ 1, 2, 3, 4, 5 };
+	BuyAofXGetBofYForZ deal1{ 1, 2, 3, 4, 5 };
 
 	std::string expected = std::to_string(EBuyAofXGetBofYFZ) + " 1 2 3 4 5";
 	std::string s = deal1.serialise();
@@ -298,7 +298,7 @@ TEST(Basics, TestSerialise_BuyAofXGetBofYFZ)
 	std::shared_ptr<Deal> shared_deal = Deal::deserialise(str);
 
 	Deal* deal = shared_deal.get();
-	BuyAofXGetBofYFZ* d = static_cast<BuyAofXGetBofYFZ*>(deal);
+	BuyAofXGetBofYForZ* d = static_cast<BuyAofXGetBofYForZ*>(deal);
 
 	ASSERT_EQ(d->selectionCount(), 1);
 	ASSERT_EQ(d->selectionId(), 2);

@@ -25,7 +25,7 @@ std::shared_ptr<Deal> Deal::deserialise(std::string aData)
 	{
 		case EBuyAofXGetBofYFZ:
 		{
-			BuyAofXGetBofYFZ* deal = BuyAofXGetBofYFZ::deserialise(aData);
+			BuyAofXGetBofYForZ* deal = BuyAofXGetBofYForZ::deserialise(aData);
 			return std::shared_ptr<Deal>(deal);
 		}
 		case EBuyInSetOfXCheapestFree:
@@ -95,7 +95,8 @@ std::vector<std::pair<Item, int>> SmartDeal::evaluate(std::vector<Item>& aInput)
 		DealSelectorSelectTargetPrice selectorPair = ds->iSelector;
 
 		// Does this deal qualify given this input?
-		std::vector<Item> selected = std::get<0>(selectorPair)->select(input);
+		SelectionSelector* selector = std::get<0>(selectorPair);
+		std::vector<Item> selected = selector->select(input);
 		int numSelected = selected.size();
 
 		if (numSelected == 0)
