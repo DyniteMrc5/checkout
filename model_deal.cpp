@@ -113,59 +113,58 @@ bool BuyAofXGetBofYFZ::targets(const Item & aItem) const
 
 std::vector<std::pair<Item, int>> BuyAofXGetBofYFZ::evaluate(std::vector<Item>& aInput) const
 {
-	// Evaluate Criteria:
-	int count = std::count_if(aInput.begin(), aInput.end(), [this](Item& item) { return item.iId == this->iSelectionId; });
-
-	if (count < iSelectionCount)
-	{
-		//std::cout << ". Found 0 (due to selection)" << std::endl;
-		return std::vector<std::pair<Item, int>>();
-	}
-
 	auto result = std::vector<std::pair<Item, int>>();
 
-	// Find Target Items (we know exist)
+	// Find Target Items (may/may not exist)
 	int targetCount = 0;
+	int selectionCount = 0;
 	for (Item& item : aInput)
 	{
-		if (targetCount >= iTargetCount)
+		// We keep going until we've found all of the targets and its selectors
+		if (targetCount >= iTargetCount && selectionCount >= iSelectionCount)
 		{
-			// Special case: iSelectionId == iTargetId and we select more than we target
-			//				We need to remove some selections from the population so that
-			//				they cannot be used for other deals
-			if (iSelectionId == iTargetId && iTargetCount < iSelectionCount)
-			{
-				result.push_back(std::make_pair(item, item.iUnitPrice));
-			}
-
 			break;
 		}
 
 		// Add target items to result with new unit price
-		if (item.iId == iTargetId)
+		//
+		// NB: the "targetCount < iTargetCount" is to cover 2 things:
+		//		1) adding too many targets
+		//		2) the case when iTargetId == iSelectionId
+		//
+		//	   In the second case this check prevents a selection item
+		//	   being added with iTargetUnitPrice insterad of item.iUnitPrice.
+		//
+		//	   Selection items get added below.
+		if (item.iId == iTargetId && targetCount < iTargetCount)
 		{
 			result.push_back(std::make_pair(item, iTargetUnitPrice));
 			targetCount++;
+			// If target id == selection id, then we also increment selection count 
+			// as we cannot select this item below if it's already added here.
+			if (iTargetId == iSelectionId)
+			{
+				++selectionCount;
+			}
+			continue;
 		}
-	}
 
-	/*
-	* Add the selection elements to the output, so that they cannot be used in other deals
-	*/
-	if (iSelectionId != iTargetId)
-	{
-		int selectionCount = 0;
-		auto finditer = std::find_if(aInput.begin(), aInput.end(), [this](Item& item) { return item.iId == this->iSelectionId; });
-		while (finditer != aInput.end() && selectionCount < iSelectionCount)
+		// Add selection items to the result with original target price
+		//
+		// NB: the "selectionCount < iSelectionCount" is to prevent adding too many selectors
+		if (item.iId == iSelectionId && selectionCount < iSelectionCount)
 		{
-			Item& item = *finditer;
-			int unitPrice = item.iUnitPrice;
-			result.push_back(std::make_pair(item, unitPrice));
+			result.push_back(std::make_pair(item, item.iUnitPrice));
 			++selectionCount;
+			continue;
 		}
 	}
 
-	//std::cout << ". Found " << targetCount << std::endl;
+	// Did not qualify:
+	if (targetCount < iTargetCount || selectionCount < iSelectionCount)
+	{
+		return std::vector<std::pair<Item, int>>();
+	}
 
 	return result;
 }

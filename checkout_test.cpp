@@ -66,6 +66,23 @@ TEST(Basics, Receipt)
 	ASSERT_NE(receipt.length(), 0);
 }
 
+
+TEST(Basics, TestInterviewCase)
+{
+	BuyAofXGetBofYFZ deal1(3, 1, 1, 1, 50); // Buy 3 of item1, get 1 item1 for 50
+											//	should be (100 + 100 + (100 deal price as 50)) twice + 100
+											//  == 100+100+50 + 100+100+50 + 100 == 600
+	std::vector<const Deal*> deals{ &deal1 };
+
+	std::vector<Item> items{ 7, Item(1, 100, std::string("Item1")) };
+	int total;
+	std::string receipt = Checkout::checkoutItems(items, deals, total);
+	std::cout << receipt << std::endl;
+	ASSERT_EQ(total, 600);
+}
+
+
+
 TEST(Basics, TestNoValidDeal)
 {
 	BuyAofXGetBofYFZ deal1(3, 0, 1, 1, 0); // Buy 3 of item0, get 1 item1 for 0 
