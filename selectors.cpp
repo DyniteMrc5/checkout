@@ -17,6 +17,11 @@ std::vector<Item> SingleItemSelector::select(std::vector<Item>& aItems)
 	return result;
 }
 
+bool SingleItemSelector::includesItem(const Item & aItem) const
+{
+	return const_cast<Item&>(aItem) == iSelectionItem;
+}
+
 // Select #X of Item-Y
 std::vector<Item> CountedSpecificItemSelector::select(std::vector<Item>& aItems)
 {
@@ -98,4 +103,9 @@ std::vector<Item> GreedyAnyInSetSelector::select(std::vector<Item>& aItems)
 		}
 	}
 	return result;
+}
+
+bool ManyItemSelector::includesItem(const Item & aItem) const
+{
+	return iSelectionSet.count(aItem);
 }

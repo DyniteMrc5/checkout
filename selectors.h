@@ -13,6 +13,7 @@ class Selector
 {
 public:
 	virtual std::vector<Item> select(std::vector<Item>& aItems) = 0;
+	virtual bool includesItem(const Item&) const = 0;
 };
 
 // --------------
@@ -24,6 +25,7 @@ public:
 	SingleItemSelector(Item& aItem) : Selector(), iSelectionItem(aItem) {};
 
 	virtual std::vector<Item> select(std::vector<Item>& aItems);
+	virtual bool includesItem(const Item&) const;
 protected:
 	Item& iSelectionItem;
 };
@@ -53,6 +55,8 @@ public:
 	virtual std::vector<Item> select(std::vector<Item>& aItems) = 0;
 protected:
 	ManyItemSelector(std::set<Item>& aSelection) : iSelectionSet(aSelection) {};
+	
+	virtual bool includesItem(const Item&) const;
 
 	std::set<Item>& iSelectionSet;
 };

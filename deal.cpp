@@ -38,14 +38,12 @@ std::shared_ptr<Deal> Deal::deserialise(std::string aData)
 	throw "Invalid deserialse data";
 }
 
-
 bool SmartDeal::selectsOn(const Item & aItem) const
 {
 	for (DealSelector* ds : iSelectors.selectors())
 	{
 		SelectionSelector* selector = std::get<0>(ds->iSelector);
-		std::vector<Item> itemList{ aItem };
-		if (selector->select(itemList).size())
+		if (selector->includesItem(aItem))
 		{
 			return true;
 		}
@@ -58,8 +56,7 @@ bool SmartDeal::targets(const Item & aItem) const
 	for (DealSelector* ds : iSelectors.selectors())
 	{
 		TargetSelector* selector = std::get<1>(ds->iSelector);
-		std::vector<Item> itemList{ aItem };
-		if (selector->select(itemList).size())
+		if (selector->includesItem(aItem))
 		{
 			return true;
 		}

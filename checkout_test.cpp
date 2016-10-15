@@ -328,6 +328,95 @@ TEST(Basics, TestSmartDeals_SingleItem)
 	ASSERT_EQ(total, 80);
 }
 
+
+int TestDeals_Generic(int countSelections, int countTargets, std::vector<Item>::size_type countNumItems)
+{
+	Item item1{ 1, 100, "Item B" + std::to_string(countSelections) + "G" + std::to_string(countTargets) + "#" + std::to_string(countNumItems) };
+
+	BuyAofXGetBofYForZ deal1(countSelections, 1, countTargets, 1, 50);
+	deal1.name() = "DEAL BuyXGetX";
+
+	std::vector<const Deal*> deals{ &deal1 };
+
+	std::vector<Item> items{ countNumItems, item1 };
+	int total;
+	std::string receipt = Checkout::checkoutItems(items, deals, total);
+	std::cout << receipt << std::endl;
+	return total;
+}
+
+//For each N (equal) items of X you get K items of Y for Z
+TEST(Basics, TestDeals_InterviewCase_Generic)
+{
+	for (int numTargets = 1; numTargets <= 3; ++numTargets)
+	{
+		for (int numSelectors = numTargets; numSelectors <= 3; ++numSelectors)
+		{
+			for (std::vector<Item>::size_type numItems = 1; numItems <= 9; ++numItems)
+			{
+				int expected = numItems * 100;
+				expected -= (numItems / numSelectors) * numTargets * 50;
+
+				std::cout << "TestDeals_InterviewCase_Generic:" <<
+					"Buy " << numSelectors <<
+					", Get " << numTargets <<
+					", #" << numItems << " Items" <<
+					" (Expected: " << expected << ")" << std::endl;
+				ASSERT_EQ(TestDeals_Generic(numSelectors, numTargets, numItems), expected);
+			}
+		}
+	}
+}
+
+
+int TestSmartDeals_Generic(int countSelections, int countTargets, std::vector<Item>::size_type countNumItems)
+{
+	Item item1{ 1, 100, "Item B" + std::to_string(countSelections) + "G" + std::to_string(countTargets) + "#" + std::to_string(countNumItems) };
+	CountedSpecificItemSelector selectionSelector{ item1, countSelections }; // # of sweets to qualify
+	CountedSpecificItemSelector targetSelector{ item1, countTargets }; // # of sweets affected
+
+	DealSelectorSelectTargetPrice dsSTP{ std::make_tuple(&selectionSelector, &targetSelector, 50) };
+	StrictDealSelector deal(dsSTP);
+	std::vector<DealSelector*> selectors{ &deal };
+	MultiDealSelector ds(selectors);
+	SmartDeal deal1(ds);
+	deal1.name() = "DEAL BuyXGetX";
+
+	std::vector<const Deal*> deals{ &deal1 };
+
+	std::vector<Item> items{ countNumItems, item1 };
+	int total;
+	std::string receipt = Checkout::checkoutItems(items, deals, total);
+	std::cout << receipt << std::endl;
+	return total;
+}
+
+//For each N (equal) items of X you get K items of Y for Z
+TEST(Basics, TestSmartDeals_InterviewCase_Generic)
+{
+	ASSERT_EQ(TestSmartDeals_Generic(3, 1, 7), 600);
+
+	for (int numTargets = 1; numTargets <= 3; ++numTargets)
+	{
+		for (int numSelectors = numTargets; numSelectors <= 3; ++numSelectors)
+		{
+			for (std::vector<Item>::size_type numItems = 1; numItems <= 9; ++numItems)
+			{
+				int expected = numItems * 100;
+				expected -= (numItems / numSelectors) * numTargets * 50;
+
+				std::cout << "TestSmartDeals_InterviewCase_Generic:" << 
+					    "Buy " 	<< numSelectors << 
+						", Get " << numTargets << 
+						", #" << numItems << " Items" <<
+						" (Expected: " << expected << ")" << std::endl;
+				ASSERT_EQ(TestSmartDeals_Generic(numSelectors, numTargets, numItems), expected);
+			}
+		}
+	}
+	
+}
+
 //For each N (equal) items of X you get K items of Y for Z
 TEST(Basics, TestSmartDeals_InterviewCase)
 {
